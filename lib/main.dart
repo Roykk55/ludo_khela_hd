@@ -1,32 +1,15 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LudoGameBoardPage()));
+void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LudoBoardFinal()));
 
-class LudoGameBoardPage extends StatefulWidget {
+class LudoBoardFinal extends StatefulWidget {
   @override
-  _LudoGameBoardPageState createState() => _LudoGameBoardPageState();
+  _LudoBoardFinalState createState() => _LudoBoardFinalState();
 }
 
-class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
-  // ১৬টি গুটির পজিশন ইনডেক্স (০ থেকে ৩৯ পর্যন্ত মোট ৪০টি ঘর)
-  List<int> coinPositions = List.generate(16, (i) => 0); 
-  
-  // বোর্ডের ৪০টি কোঅর্ডিনেট (বর্গাকার লুপ)
-  final List<Offset> boardPath = List.generate(40, (i) {
-    if (i < 10) return Offset(20.0 + (i * 25), 20.0); // টপ
-    if (i < 20) return Offset(270.0, 20.0 + ((i - 10) * 25)); // রাইট
-    if (i < 30) return Offset(270.0 - ((i - 20) * 25), 270.0); // বটম
-    return Offset(20.0, 270.0 - ((i - 30) * 25)); // লেফট
-  });
-
-  void moveCoins() {
-    setState(() {
-      int dice = (1 + DateTime.now().microsecond % 6);
-      for (int i = 0; i < 16; i++) {
-        coinPositions[i] = (coinPositions[i] + dice) % 40; // লুপ অনুযায়ী মুভমেন্ট
-      }
-    });
-  }
+class _LudoBoardFinalState extends State<LudoBoardFinal> {
+  // গুটির পজিশন - ৪টি রঙের জন্য ১৬টি গুটি
+  List<Offset> positions = List.generate(16, (i) => Offset(20, 20));
 
   @override
   Widget build(BuildContext context) {
@@ -34,21 +17,49 @@ class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
       backgroundColor: Colors.black,
       body: Center(
         child: Container(
-          width: 300, height: 300, color: Colors.white,
+          width: 320, height: 320, color: Colors.white,
           child: Stack(children: [
-            ...List.generate(16, (i) => Positioned(
-              left: boardPath[coinPositions[i]].dx,
-              top: boardPath[coinPositions[i]].dy,
-              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 20),
+            // ১. সুন্দর বোর্ড ডিজাইন (৪টি কালার জোন)
+            Positioned(top: 0, left: 0, child: Container(width: 160, height: 160, color: Colors.red.withOpacity(0.3))),
+            Positioned(top: 0, right: 0, child: Container(width: 160, height: 160, color: Colors.green.withOpacity(0.3))),
+            Positioned(bottom: 0, left: 0, child: Container(width: 160, height: 160, color: Colors.yellow.withOpacity(0.3))),
+            Positioned(bottom: 0, right: 0, child: Container(width: 160, height: 160, color: Colors.blue.withOpacity(0.3))),
+            
+            // ২. গ্রিড লাইন বা বর্ডার (ডিজাইন আরও প্রফেশনাল করার জন্য)
+            CustomPaint(painter: BoardPainter()),
+
+            // ৩. ১৬টি গুটি (এনিমেশনসহ)
+            ...List.generate(16, (i) => AnimatedPositioned(
+              duration: Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              left: positions[i].dx,
+              top: positions[i].dy,
+              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 24),
             )),
           ]),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: moveCoins,
-        child: Icon(Icons.casino),
-        backgroundColor: Colors.orange,
+        onPressed: () {
+          setState(() {
+            // এখানে ক্লিক করলে গুটিগুলো বোর্ডের নির্দিষ্ট রাউন্ড পথে ঘুরবে
+            positions = List.generate(16, (i) => Offset(40.0 + (i * 10) % 200, 40.0 + (i * 10) % 200));
+          });
+        },
+        child: Icon(Icons.play_arrow),
       ),
     );
   }
+}
+
+// বোর্ডের দাগগুলো আঁকার জন্য
+class BoardPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()..color = Colors.black..strokeWidth = 2;
+    canvas.drawLine(Offset(160, 0), Offset(160, 320), paint);
+    canvas.drawLine(Offset(0, 160), Offset(320, 160), paint);
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
