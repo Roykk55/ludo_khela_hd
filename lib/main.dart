@@ -9,74 +9,61 @@ class LudoHomeScreen extends StatelessWidget {
       backgroundColor: Color(0xFF005C71),
       body: Column(
         children: [
-          // ১. হেডার সেকশন
-          Padding(
-            padding: EdgeInsets.only(top: 50, left: 15, right: 15),
-            child: Row(
+          // উন্নত হেডার (কয়েন, জেমস, সেটিংস)
+          _buildTopBar(),
+          
+          // মেইন লোগো
+          Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text("LUDO", style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.white))),
+
+          // গেম ব্যানার (২ ও ৪ প্লেয়ার)
+          Container(height: 150, margin: EdgeInsets.all(15), decoration: BoxDecoration(color: Colors.lightBlueAccent, borderRadius: BorderRadius.circular(15)), child: Center(child: Text("2 & 4 PLAYERS", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)))),
+
+          // টিম, প্রাইভেট, ভিআইপি কার্ডস
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              padding: EdgeInsets.symmetric(horizontal: 10),
               children: [
-                CircleAvatar(radius: 20, backgroundColor: Colors.amber),
-                SizedBox(width: 10),
-                Text("PLAYER_99", style: TextStyle(color: Colors.white, fontSize: 16)),
-                Spacer(),
-                Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(20)), child: Text("486.3K + 💎 1 +", style: TextStyle(color: Colors.white))),
+                _gameIcon("Team", Colors.green),
+                _gameIcon("Private", Colors.orange),
+                _gameIcon("VIP", Colors.redAccent),
               ],
             ),
           ),
           
-          // ২. লোগো বা টাইটেল সেকশন
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Text("LUDO", style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 10)])),
-          ),
-
-          // ৩. গেম মোড কার্ডস
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              padding: EdgeInsets.all(20),
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              children: [
-                _gameCard("Team", Colors.green, Icons.group_add),
-                _gameCard("Private", Colors.orange, Icons.lock),
-                _gameCard("VIP", Colors.redAccent, Icons.star),
-                _gameCard("Classic", Colors.blueAccent, Icons.casino),
-              ],
-            ),
-          ),
-
-          // ৪. নিচে লিগ এবং র‍্যাঙ্ক ব্যানার
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(child: _infoBox("League", "NO.163")),
-                SizedBox(width: 10),
-                Expanded(child: _infoBox("Rank", "NO.1000+")),
-              ],
-            ),
-          ),
-
-          // ৫. বটম নেভিগেশন
+          // স্লাইডার এবং বটম নেভিগেশন
+          _buildSlider(),
           _buildBottomNav(),
         ],
       ),
     );
   }
 
-  Widget _gameCard(String title, Color color, IconData icon) => Card(
-    color: color,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [Icon(icon, size: 50, color: Colors.white), Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))],
+  Widget _buildTopBar() => SafeArea(
+    child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      child: Row(
+        children: [
+          CircleAvatar(backgroundColor: Colors.amber),
+          SizedBox(width: 10),
+          Expanded(child: Text("PLAYER_99", style: TextStyle(color: Colors.white))),
+          Container(padding: EdgeInsets.all(5), decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(10)), child: Text("486.3K + 💎 1 +", style: TextStyle(color: Colors.white))),
+          IconButton(icon: Icon(Icons.settings, color: Colors.white), onPressed: () {}),
+        ],
+      ),
     ),
   );
 
-  Widget _infoBox(String title, String value) => Container(
-    padding: EdgeInsets.all(10),
-    decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(10)),
-    child: Column(children: [Text(title, style: TextStyle(color: Colors.white70)), Text(value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]),
+  Widget _gameIcon(String title, Color color) => Column(
+    children: [
+      Container(height: 80, width: 80, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white, width: 2))),
+      Text(title, style: TextStyle(color: Colors.white)),
+    ],
+  );
+
+  Widget _buildSlider() => Padding(
+    padding: EdgeInsets.symmetric(vertical: 10),
+    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.circle, size: 10, color: Colors.white), SizedBox(width: 5), Icon(Icons.circle, size: 10, color: Colors.white54)]),
   );
 
   Widget _buildBottomNav() => BottomNavigationBar(
