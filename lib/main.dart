@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: MainNavigationScreen()));
 
-// --- মেইন নেভিগেশন স্ট্রাকচার (এটা আর পরিবর্তন করা লাগবে না) ---
 class MainNavigationScreen extends StatefulWidget {
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
@@ -17,11 +16,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Color(0xFF005C71), body: _pages[_currentIndex], bottomNavigationBar: BottomNavigationBar(currentIndex: _currentIndex, onTap: (index) => setState(() => _currentIndex = index), backgroundColor: Color(0xFF003D4D), selectedItemColor: Colors.white, unselectedItemColor: Colors.white54, items: [BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: "Events"), BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: "Battle"), BottomNavigationBarItem(icon: Icon(Icons.people), label: "Social")]));
+    return Scaffold(
+      backgroundColor: Color(0xFF005C71), 
+      body: _pages[_currentIndex], 
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex, 
+        onTap: (index) => setState(() => _currentIndex = index), 
+        backgroundColor: Color(0xFF003D4D), 
+        selectedItemColor: Colors.white, 
+        unselectedItemColor: Colors.white54, 
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: "Events"), 
+          BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: "Battle"), 
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Social")
+        ]
+      )
+    );
   }
 }
 
-// --- হোম স্ক্রিন (এগুলো আগের মতোই আছে) ---
 class LudoHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -50,7 +63,6 @@ class LudoHomeScreen extends StatelessWidget {
   Widget _menuCard(context, title, color, icon, page) => GestureDetector(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)), child: Container(margin: EdgeInsets.all(5), height: 100, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: Colors.white), Text(title, style: TextStyle(color: Colors.white))])));
 }
 
-// --- নতুন মোড সিলেকশন পেজ ---
 class GameModeSelectionPage extends StatelessWidget {
   final String mode;
   GameModeSelectionPage({required this.mode});
@@ -58,15 +70,13 @@ class GameModeSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(backgroundColor: Color(0xFF005C71), appBar: AppBar(title: Text("$mode Mode"), backgroundColor: Color(0xFF003D4D)), body: Column(children: [Padding(padding: EdgeInsets.all(20), child: Text("Choose Bet Amount", style: TextStyle(color: Colors.white, fontSize: 20))), Wrap(spacing: 10, children: ["500", "1K", "5K", "10K"].map((a) => Chip(label: Text(a))).toList()), Spacer(), Padding(padding: EdgeInsets.all(20), child: SizedBox(width: double.infinity, height: 50, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.green), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LudoGameBoardPage(mode: mode))), child: Text("START GAME", style: TextStyle(fontSize: 18, color: Colors.white)))))]));
 }
 
-// --- নতুন গেম বোর্ড পেজ (এখানেই আমরা ভবিষ্যতে গেমের মূল থ্রিডি বোর্ড তৈরি করব) ---
 class LudoGameBoardPage extends StatelessWidget {
   final String mode;
   LudoGameBoardPage({required this.mode});
   @override
   Widget build(BuildContext context) => Scaffold(backgroundColor: Colors.brown[900], appBar: AppBar(title: Text("$mode - Game Board"), backgroundColor: Colors.black), body: Center(child: Container(width: 350, height: 350, color: Colors.white, child: Center(child: Text("গেম বোর্ড এখানে বসবে", style: TextStyle(color: Colors.black))))));
+}
 
-// --- অন্যান্য সাপোর্ট পেজ ---
 class ProfilePage extends StatelessWidget { @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text("Profile")), body: Center(child: Text("Profile Settings"))); }
 class StorePage extends StatelessWidget { @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text("Shop")), body: Center(child: Text("Shop Active"))); }
 class SettingsPage extends StatelessWidget { @override Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text("Settings")), body: Center(child: Text("Settings Active"))); }
-  
