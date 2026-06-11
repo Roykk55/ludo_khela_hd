@@ -50,9 +50,9 @@ class LudoHomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
             Row(children: [
-              _menuCard(context, "Team", Colors.green, Icons.people, GameModeSelectionPage(mode: "Team")),
-              _menuCard(context, "Private", Colors.orange, Icons.vpn_key, GameModeSelectionPage(mode: "Private")),
-              _menuCard(context, "VIP", Colors.red, Icons.star, GameModeSelectionPage(mode: "VIP")),
+              Expanded(child: _menuCard(context, "Team", Colors.green, Icons.people, GameModeSelectionPage(mode: "Team"))),
+              Expanded(child: _menuCard(context, "Private", Colors.orange, Icons.vpn_key, GameModeSelectionPage(mode: "Private"))),
+              Expanded(child: _menuCard(context, "VIP", Colors.red, Icons.star, GameModeSelectionPage(mode: "VIP"))),
             ]),
           ])),
         ],
@@ -62,7 +62,7 @@ class LudoHomeScreen extends StatelessWidget {
 
   Widget _buildHeader(context) => Padding(padding: EdgeInsets.all(15), child: Row(children: [CircleAvatar(backgroundColor: Colors.amber), SizedBox(width: 10), Text("PLAYER_99", style: TextStyle(color: Colors.white)), Spacer(), Icon(Icons.shopping_cart, color: Colors.white), SizedBox(width: 10), Icon(Icons.settings, color: Colors.white)]));
 
-  Widget _menuCard(context, title, color, icon, page) => Expanded(child: GestureDetector(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)), child: Container(margin: EdgeInsets.all(5), height: 100, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: Colors.white), Text(title, style: TextStyle(color: Colors.white))]))));
+  Widget _menuCard(context, title, color, icon, page) => GestureDetector(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)), child: Container(margin: EdgeInsets.all(5), height: 100, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: Colors.white), Text(title, style: TextStyle(color: Colors.white))])));
 }
 
 class GameModeSelectionPage extends StatelessWidget {
@@ -80,14 +80,48 @@ class LudoGameBoardPage extends StatefulWidget {
 }
 
 class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
-  double x = 10, y = 10;
-  void roll() {
+  List<Offset> coinPositions = [Offset(10, 10), Offset(150, 10), Offset(10, 150), Offset(150, 150)];
+  int diceValue = 1;
+
+  void rollDice() {
     setState(() {
-      x = (x + 30) % 300;
+      diceValue = (1 + DateTime.now().microsecond % 6);
+      for (int i = 0; i < coinPositions.length; i++) {
+        coinPositions[i] = Offset((coinPositions[i].dx + diceValue * 10) % 180, coinPositions[i].dy);
+      }
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(backgroundColor: Colors.brown[900], appBar: AppBar(title: Text(widget.mode)), body: Center(child: Container(width: 300, height: 300, color: Colors.white, child: Stack(children: [Positioned(left: x, top: y, child: Icon(Icons.circle, color: Colors.red, size: 30))]))), floatingActionButton: FloatingActionButton(onPressed: roll, child: Icon(Icons.play_arrow)));
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text("${widget.mode} - Arena"), backgroundColor: Colors.brown[900]),
+      body: Column(
+        children: [
+          SizedBox(height: 20),
+          Container(
+            height: 300, width: 300,
+            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.red, width: 3)),
+            child: Stack(
+              children: [
+                Positioned(top: 0, left: 0, child: Container(width: 100, height: 100, color: Colors.red.withOpacity(0.3))),
+                Positioned(top: 0, right: 0, child: Container(width: 100, height: 100, color: Colors.green.withOpacity(0.3))),
+                Positioned(bottom: 0, left: 0, child: Container(width: 100, height: 100, color: Colors.yellow.withOpacity(0.3))),
+                Positioned(bottom: 0, right: 0, child: Container(width: 100, height: 100, color: Colors.blue.withOpacity(0.3))),
+                ...coinPositions.map((pos) => Positioned(left: pos.dx, top: pos.dy, child: Icon(Icons.circle, color: Colors.black, size: 25))).toList(),
+              ],
+            ),
+          ),
+          Spacer(),
+          Text("Dice: $diceValue", style: TextStyle(fontSize: 40, color: Colors.white)),
+          Padding(padding: EdgeInsets.all(20), child: ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, minimumSize: Size(double.infinity, 60)),
+            onPressed: rollDice, 
+            child: Text("ROLL DICE", style: TextStyle(fontSize: 24))
+          )),
+        ],
+      ),
+    );
   }
 }
