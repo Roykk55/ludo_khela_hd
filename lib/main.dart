@@ -1,55 +1,125 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:record/record.dart';
 
-void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LudoGameBoard()));
+late List<CameraDescription> cameras;
 
-class LudoGameBoard extends StatefulWidget {
-  @override
-  _LudoGameBoardState createState() => _LudoGameBoardState();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
+  runApp(const MyApp());
 }
 
-class _LudoGameBoardState extends State<LudoGameBoard> {
-  // ১৬টি গুটির পজিশন লিস্ট - ৪টি রঙের জন্য ১৬টি গুটি
-  List<Offset> coinPositions = List.generate(16, (i) {
-    // প্রতি ৪টি গুটিকে বোর্ডের আলাদা আলাদা কর্নারে সাজানোর লজিক
-    double x = (i % 4) * 40.0 + 20.0;
-    double y = (i ~/ 4) * 40.0 + 20.0;
-    return Offset(x, y);
-  });
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-  void rollDice() {
-    setState(() {
-      int dice = (1 + DateTime.now().microsecond % 6);
-      // গুটিগুলো যেন এলোমেলোভাবে না নড়ে, বরং একটি নির্দিষ্ট দূরত্বে নড়ে
-      for (int i = 0; i < 16; i++) {
-        coinPositions[i] = Offset(
-          (coinPositions[i].dx + (dice * 5)) % 260,
-          (coinPositions[i].dy + (dice * 5)) % 260
-        );
-      }
-    });
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  CameraController? controller;
+  final AudioRecorder recorder = AudioRecorder();
+
+  @override
+  void initState() {
+    super.initState();
+    setup();
+  }
+
+  Future<void> setup() async {
+    await Permission.camera.request();
+    await Permission.microphone.request();
+
+    controller = CameraController(
+      cameras.first,
+      ResolutionPreset.medium,
+    );
+
+    await controller!.initialize();
+
+    setState(() {});
+  }
+
+  Future<void> takePhoto() async {
+    if (controller == null || !controller!.value.isInitialized) return;
+
+    final file = await controller!.takePicture();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Saved: ${file.path}")),
+    );
+  }
+
+  Future<void> startRecording() async {
+    if (await recorder.hasPermission()) {
+      await recorder.start();
+    }
+  }
+
+  Future<void> stopRecording() async {
+    final path = await recorder.stop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Audio: $path")),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    recorder.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (controller == null || !controller!.value.isInitialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Colors.black, // বোর্ডের বর্ডার ব্ল্যাক
-      body: Center(
-        child: Container(
-          width: 300, height: 300, color: Colors.white,
-          child: Stack(children: [
-            // ১৬টি গুটিকে স্ক্রিনে প্রদর্শন করা
-            ...List.generate(16, (i) => Positioned(
-              left: coinPositions[i].dx,
-              top: coinPositions[i].dy,
-              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 25),
-            )),
-          ]),
-        ),
+      appBar: AppBar(
+        title: const Text("Flutter Demo"),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: rollDice,
-        child: Icon(Icons.casino),
-        backgroundColor: Colors.orange,
+      body: Column(
+        children: [
+          Expanded(
+            child: CameraPreview(controller!),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: takePhoto,
+                child: const Text("Photo"),
+              ),
+              ElevatedButton(
+                onPressed: startRecording,
+                child: const Text("Record"),
+              ),
+              ElevatedButton(
+                onPressed: stopRecording,
+                child: const Text("Stop"),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
