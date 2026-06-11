@@ -8,22 +8,28 @@ class LudoGameBoardPage extends StatefulWidget {
 }
 
 class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
-  // ১৬টি গুটির পজিশন এবং রঙ
-  List<Color> colors = [
-    ...List.generate(4, (_) => Colors.red),
-    ...List.generate(4, (_) => Colors.green),
-    ...List.generate(4, (_) => Colors.yellow),
-    ...List.generate(4, (_) => Colors.blue),
-  ];
-  
-  List<double> coinX = List.generate(16, (i) => 20.0 + (i % 4) * 20);
-  List<double> coinY = List.generate(16, (i) => 20.0 + (i ~/ 4) * 20);
+  // ১৬টি গুটির জন্য ১৬টি পজিশন (বোর্ডের চারপাশ অনুযায়ী)
+  List<Offset> positions = List.generate(16, (i) {
+    if (i < 4) return Offset(20, 20 + (i * 20));  // লাল গুটি
+    if (i < 8) return Offset(260, 20 + ((i - 4) * 20)); // সবুজ গুটি
+    if (i < 12) return Offset(20 + ((i - 8) * 20), 260); // হলুদ গুটি
+    return Offset(260 - ((i - 12) * 20), 260); // নীল গুটি
+  });
 
-  void rollDice() {
+  void moveCoins() {
     setState(() {
       int dice = (1 + DateTime.now().microsecond % 6);
       for (int i = 0; i < 16; i++) {
-        coinX[i] = (coinX[i] + (dice * 10)) % 280;
+        // নতুন লজিক: গুটিগুলো এখন বর্গাকার পথে ঘুরবে
+        double x = positions[i].dx;
+        double y = positions[i].dy;
+
+        if (x < 260 && y == 20) x += (dice * 10); // উপরে ডানে যাবে
+        else if (x >= 260 && y < 260) y += (dice * 10); // ডানে নিচে যাবে
+        else if (x > 20 && y >= 260) x -= (dice * 10); // নিচে বামে যাবে
+        else y -= (dice * 10); // বামে উপরে যাবে
+
+        positions[i] = Offset(x.clamp(20.0, 260.0), y.clamp(20.0, 260.0));
       }
     });
   }
@@ -31,27 +37,27 @@ class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // বোর্ডের বর্ডার ব্ল্যাক
+      backgroundColor: Colors.black,
       body: Center(
         child: Container(
           width: 300, height: 300, color: Colors.white,
           child: Stack(children: [
-            // ৪টি কালার জোন (লাল, সবুজ, হলুদ, নীল)
-            Positioned(top: 0, left: 0, child: Container(width: 150, height: 150, color: Colors.red.withOpacity(0.3))),
-            Positioned(top: 0, right: 0, child: Container(width: 150, height: 150, color: Colors.green.withOpacity(0.3))),
-            Positioned(bottom: 0, left: 0, child: Container(width: 150, height: 150, color: Colors.yellow.withOpacity(0.3))),
-            Positioned(bottom: 0, right: 0, child: Container(width: 150, height: 150, color: Colors.blue.withOpacity(0.3))),
+            // ৪টি রঙের জোন
+            Positioned(top: 0, left: 0, child: Container(width: 150, height: 150, color: Colors.red.withOpacity(0.2))),
+            Positioned(top: 0, right: 0, child: Container(width: 150, height: 150, color: Colors.green.withOpacity(0.2))),
+            Positioned(bottom: 0, left: 0, child: Container(width: 150, height: 150, color: Colors.yellow.withOpacity(0.2))),
+            Positioned(bottom: 0, right: 0, child: Container(width: 150, height: 150, color: Colors.blue.withOpacity(0.2))),
             
             // ১৬টি গুটি
             ...List.generate(16, (i) => Positioned(
-              left: coinX[i], top: coinY[i],
-              child: Icon(Icons.circle, color: colors[i], size: 20),
+              left: positions[i].dx, top: positions[i].dy,
+              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 20),
             )),
           ]),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: rollDice,
+        onPressed: moveCoins,
         child: Icon(Icons.casino),
         backgroundColor: Colors.orange,
       ),
