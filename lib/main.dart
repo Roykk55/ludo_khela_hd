@@ -1,77 +1,3 @@
-import 'package:flutter/material.dart';
-
-void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: MainNavigationScreen()));
-
-class MainNavigationScreen extends StatefulWidget {
-  @override
-  _MainNavigationScreenState createState() => _MainNavigationScreenState();
-}
-
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 1;
-  final List<Widget> _pages = [
-    Center(child: Text("Events", style: TextStyle(color: Colors.white))),
-    LudoHomeScreen(),
-    Center(child: Text("Social", style: TextStyle(color: Colors.white))),
-  ];
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF005C71),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: Color(0xFF003D4D),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: "Events"),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: "Battle"),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Social"),
-        ],
-      ),
-    );
-  }
-}
-
-class LudoHomeScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text("LUDO", style: TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold))),
-          Expanded(child: ListView(padding: EdgeInsets.all(15), children: [
-            GestureDetector(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => GameModeSelectionPage(mode: "2 & 4 PLAYERS"))),
-              child: Container(height: 120, decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(15)), child: Center(child: Text("2 & 4 PLAYERS", style: TextStyle(color: Colors.white, fontSize: 20)))),
-            ),
-            SizedBox(height: 20),
-            Row(children: [
-              Expanded(child: _menuCard(context, "Team", Colors.green, Icons.people, GameModeSelectionPage(mode: "Team"))),
-              Expanded(child: _menuCard(context, "Private", Colors.orange, Icons.vpn_key, GameModeSelectionPage(mode: "Private"))),
-              Expanded(child: _menuCard(context, "VIP", Colors.red, Icons.star, GameModeSelectionPage(mode: "VIP"))),
-            ]),
-          ])),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(context) => Padding(padding: EdgeInsets.all(15), child: Row(children: [CircleAvatar(backgroundColor: Colors.amber), SizedBox(width: 10), Text("PLAYER_99", style: TextStyle(color: Colors.white)), Spacer(), Icon(Icons.shopping_cart, color: Colors.white), SizedBox(width: 10), Icon(Icons.settings, color: Colors.white)]));
-
-  Widget _menuCard(context, title, color, icon, page) => GestureDetector(onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)), child: Container(margin: EdgeInsets.all(5), height: 100, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: Colors.white), Text(title, style: TextStyle(color: Colors.white))])));
-}
-
-class GameModeSelectionPage extends StatelessWidget {
-  final String mode;
-  GameModeSelectionPage({required this.mode});
-  @override
-  Widget build(BuildContext context) => Scaffold(backgroundColor: Color(0xFF005C71), appBar: AppBar(title: Text("$mode Mode"), backgroundColor: Color(0xFF003D4D)), body: Column(children: [Padding(padding: EdgeInsets.all(20), child: Text("Select Amount", style: TextStyle(color: Colors.white))), ElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LudoGameBoardPage(mode: mode))), child: Text("START GAME"))]));
-}
-
 class LudoGameBoardPage extends StatefulWidget {
   final String mode;
   LudoGameBoardPage({required this.mode});
@@ -81,29 +7,47 @@ class LudoGameBoardPage extends StatefulWidget {
 
 class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
   int dice = 1;
-  double x = 50, y = 50;
+  List<int> coinPositions = [0, 0, 0, 0]; // ৪টি গুটির পজিশন
+  int turn = 0; // বর্তমান প্লেয়ারের টার্ন (০ থেকে ৩)
 
-  void roll() {
+  // পুরো বোর্ডের পথ
+  final List<Offset> boardPath = List.generate(40, (i) {
+    if (i < 10) return Offset(20 + (i * 20.0), 20); // উপরের লাইন
+    if (i < 20) return Offset(220, 20 + ((i - 10) * 20.0)); // ডানদিকের লাইন
+    if (i < 30) return Offset(220 - ((i - 20) * 20.0), 220); // নিচের লাইন
+    return Offset(20, 220 - ((i - 30) * 20.0)); // বামদিকের লাইন
+  });
+
+  void playTurn() {
     setState(() {
       dice = (1 + DateTime.now().microsecond % 6);
-      x = (x + (dice * 20)) % 250;
+      coinPositions[turn] = (coinPositions[turn] + dice) % 40;
+      turn = (turn + 1) % 4; // পরবর্তী প্লেয়ারের টার্ন
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.brown[900],
-      appBar: AppBar(title: Text(widget.mode)),
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: Text(widget.mode), backgroundColor: Colors.brown),
       body: Center(
         child: Container(
-          width: 300, height: 300, color: Colors.white,
+          width: 250, height: 250, color: Colors.white,
           child: Stack(children: [
-            Positioned(left: x, top: y, child: Icon(Icons.circle, color: Colors.red, size: 30))
+            ...List.generate(4, (i) => Positioned(
+              left: boardPath[coinPositions[i]].dx,
+              top: boardPath[i].dy,
+              child: Icon(Icons.circle, color: [Colors.red, Colors.green, Colors.yellow, Colors.blue][i], size: 25),
+            ))
           ]),
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: roll, child: Icon(Icons.play_arrow)),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: playTurn,
+        label: Text("ROLL & MOVE"),
+        icon: Icon(Icons.casino),
+      ),
     );
   }
 }
