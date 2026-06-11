@@ -8,23 +8,22 @@ class LudoGameBoardPage extends StatefulWidget {
 }
 
 class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
-  // ১৬টি গুটির পজিশন লিস্ট (প্রতিটি গুটির জন্য আলাদা পজিশন)
-  List<Offset> coinPositions = List.generate(16, (i) {
-    // প্রতি ৪টি গুটিকে বোর্ডের আলাদা আলাদা কর্নারে সাজানোর লজিক
-    double x = (i % 4) * 40.0 + 20.0;
-    double y = (i ~/ 4) * 40.0 + 20.0;
-    return Offset(x, y);
+  // ১৬টি গুটির পজিশন ইনডেক্স (০ থেকে ৩৯ পর্যন্ত মোট ৪০টি ঘর)
+  List<int> coinPositions = List.generate(16, (i) => 0); 
+  
+  // বোর্ডের ৪০টি কোঅর্ডিনেট (বর্গাকার লুপ)
+  final List<Offset> boardPath = List.generate(40, (i) {
+    if (i < 10) return Offset(20.0 + (i * 25), 20.0); // টপ
+    if (i < 20) return Offset(270.0, 20.0 + ((i - 10) * 25)); // রাইট
+    if (i < 30) return Offset(270.0 - ((i - 20) * 25), 270.0); // বটম
+    return Offset(20.0, 270.0 - ((i - 30) * 25)); // লেফট
   });
 
-  void rollDice() {
+  void moveCoins() {
     setState(() {
       int dice = (1 + DateTime.now().microsecond % 6);
-      // গুটিগুলো যেন এলোমেলোভাবে না নড়ে, বরং একটি নির্দিষ্ট দূরত্বে নড়ে
       for (int i = 0; i < 16; i++) {
-        coinPositions[i] = Offset(
-          (coinPositions[i].dx + (dice * 5)) % 260,
-          (coinPositions[i].dy + (dice * 5)) % 260
-        );
+        coinPositions[i] = (coinPositions[i] + dice) % 40; // লুপ অনুযায়ী মুভমেন্ট
       }
     });
   }
@@ -37,17 +36,16 @@ class _LudoGameBoardPageState extends State<LudoGameBoardPage> {
         child: Container(
           width: 300, height: 300, color: Colors.white,
           child: Stack(children: [
-            // ১৬টি গুটিকে স্ক্রিনে প্রদর্শন করা
             ...List.generate(16, (i) => Positioned(
-              left: coinPositions[i].dx,
-              top: coinPositions[i].dy,
-              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 25),
+              left: boardPath[coinPositions[i]].dx,
+              top: boardPath[coinPositions[i]].dy,
+              child: Icon(Icons.circle, color: (i < 4) ? Colors.red : (i < 8) ? Colors.green : (i < 12) ? Colors.yellow : Colors.blue, size: 20),
             )),
           ]),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: rollDice,
+        onPressed: moveCoins,
         child: Icon(Icons.casino),
         backgroundColor: Colors.orange,
       ),
