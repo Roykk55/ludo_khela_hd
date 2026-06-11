@@ -1,37 +1,29 @@
-import 'package:flutter/material.dart'; // এখানে 'import' ছোট হাতের অক্ষরে হবে
+import 'package:flutter/material.dart';
 
-void main() => runApp(LudoApp());
+void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: LudoHomeScreen()));
 
-class LudoApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: LudoMainScreen(),
-    );
-  }
-}
-
-class LudoMainScreen extends StatelessWidget {
+class LudoHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      backgroundColor: Color(0xFF005C71), // এলা লুডুর মতো নীল থিম
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              padding: EdgeInsets.all(20),
+              children: [
+                _gameCard("Team", Colors.green, Icons.group_add),
+                _gameCard("Private", Colors.orange, Icons.lock),
+                _gameCard("VIP", Colors.redAccent, Icons.star),
+                _gameCard("Classic", Colors.blueAccent, Icons.casino),
+              ],
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildGameOptions()),
-            _buildBottomNav(),
-          ],
-        ),
+          _buildBottomNav(),
+        ],
       ),
     );
   }
@@ -39,46 +31,33 @@ class LudoMainScreen extends StatelessWidget {
   Widget _buildHeader() => Padding(
     padding: EdgeInsets.only(top: 50, left: 20, right: 20),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CircleAvatar(radius: 25, backgroundColor: Colors.orange, child: Icon(Icons.person, color: Colors.white)),
-        Text("PLAYER_99", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        Container(padding: EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(20)), child: Row(children: [Icon(Icons.monetization_on, color: Colors.yellow), Text(" 50K")])),
+        CircleAvatar(radius: 20, backgroundColor: Colors.amber),
+        SizedBox(width: 10),
+        Text("PLAYER_99", style: TextStyle(color: Colors.white)),
+        Spacer(),
+        Container(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5), color: Colors.black26, child: Text("50K 💎", style: TextStyle(color: Colors.white))),
       ],
     ),
   );
 
-  Widget _buildGameOptions() => Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      _actionButton("Online Match", Colors.blueAccent, Icons.public),
-      SizedBox(height: 20),
-      _actionButton("Play with Friends", Colors.green, Icons.group),
-      SizedBox(height: 20),
-      _actionButton("Tournament", Colors.purple, Icons.emoji_events),
-    ],
-  );
-
-  Widget _actionButton(String text, Color color, IconData icon) => Container(
-    width: 280,
-    height: 70,
-    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(35), boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5))]),
-    child: Row(
+  Widget _gameCard(String title, Color color, IconData icon) => Card(
+    color: color,
+    child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [Icon(icon, size: 30), SizedBox(width: 10), Text(text, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))],
+      children: [Icon(icon, size: 50, color: Colors.white), Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))],
     ),
   );
 
   Widget _buildBottomNav() => BottomNavigationBar(
-    backgroundColor: Colors.transparent,
     type: BottomNavigationBarType.fixed,
+    backgroundColor: Color(0xFF003D4D),
     selectedItemColor: Colors.white,
-    unselectedItemColor: Colors.grey,
+    unselectedItemColor: Colors.white54,
     items: [
-      BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-      BottomNavigationBarItem(icon: Icon(Icons.chat_bubble), label: "Chat"),
-      BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: "Rank"),
-      BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+      BottomNavigationBarItem(icon: Icon(Icons.home), label: "Events"),
+      BottomNavigationBarItem(icon: Icon(Icons.flash_on), label: "Battle"),
+      BottomNavigationBarItem(icon: Icon(Icons.people), label: "Social"),
     ],
   );
 }
